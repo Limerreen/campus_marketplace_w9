@@ -3,9 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/listing_draft.dart';
 import '../services/gemini_vision_service.dart';
+import '../repositories/listing_draft_repository.dart';
+import 'my_drafts_page.dart';
 
 class SellItemPage extends StatefulWidget {
-  const SellItemPage({super.key});
+  final ListingDraftRepository draftRepository;
+
+  const SellItemPage({
+    super.key,
+    required this.draftRepository,
+  });
 
   @override
   State<SellItemPage> createState() => _SellItemPageState();
@@ -29,8 +36,6 @@ class _SellItemPageState extends State<SellItemPage> {
   final TextEditingController _descriptionController = TextEditingController();
 
   final GeminiVisionService _geminiService = GeminiVisionService();
-
-  ListingDraft? _savedDraft;
 
   @override
   void dispose() {
@@ -65,6 +70,7 @@ class _SellItemPageState extends State<SellItemPage> {
         _selectedImage!,
         prompt: _prompt,
       );
+
       setState(() {
         _titleController.text = draft.title;
         _categoryController.text = draft.category;
@@ -79,41 +85,90 @@ class _SellItemPageState extends State<SellItemPage> {
     }
   }
 
-  void _submitListing() {
+  Future<void> _submitListing() async {
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรุณากรอกชื่อสินค้าก่อนยืนยัน')),
+        const SnackBar(
+          content: Text('กรุณากรอกชื่อสินค้าก่อนยืนยัน'),
+        ),
       );
       return;
     }
 
-    setState(() {
-      _savedDraft = ListingDraft(
-        title: _titleController.text.trim(),
-        category: _categoryController.text.trim(),
-        description: _descriptionController.text.trim(),
+    if (_selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กรุณาเลือกรูปภาพสินค้าก่อนยืนยัน'),
+        ),
       );
+      return;
+    }
 
-      _selectedImage = null;
-      _titleController.clear();
-      _categoryController.clear();
-      _descriptionController.clear();
+    final draft = ListingDraft(
+      title: _titleController.text.trim(),
+      category: _categoryController.text.trim(),
+      description: _descriptionController.text.trim(),
+    );
+
+    setState(() {
+      _isLoading = true;
       _errorMessage = null;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('บันทึกร่างประกาศเรียบร้อยแล้ว'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 3),
-      ),
-    );
+    try {
+      await widget.draftRepository.saveDraft(
+        draft,
+        _selectedImage!.path,
+      );
+
+      setState(() {
+        _selectedImage = null;
+        _titleController.clear();
+        _categoryController.clear();
+        _descriptionController.clear();
+        _errorMessage = null;
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('บันทึกร่างประกาศเรียบร้อยแล้ว'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'ไม่สามารถบันทึกร่างประกาศได้: ${e.toString()}';
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ลงประกาศขายสินค้า')),
+      appBar: AppBar(
+        title: const Text('ลงประกาศขายสินค้า'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'ร่างประกาศของฉัน',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MyDraftsPage(
+                    repository: widget.draftRepository,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -147,19 +202,23 @@ class _SellItemPageState extends State<SellItemPage> {
                           const SizedBox(height: 8),
                           Text(
                             'ยังไม่ได้เลือกรูปภาพสินค้า',
-                            style: TextStyle(color: Colors.grey.shade600),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                            ),
                           ),
                         ],
                       ),
                     ),
             ),
             const SizedBox(height: 16),
+
             ElevatedButton.icon(
               onPressed: _isLoading ? null : _pickImage,
               icon: const Icon(Icons.photo_library),
               label: const Text('เลือกรูปภาพสินค้า'),
             ),
             const SizedBox(height: 12),
+
             ElevatedButton.icon(
               onPressed: (_selectedImage != null && !_isLoading)
                   ? _analyzeImage
@@ -174,11 +233,13 @@ class _SellItemPageState extends State<SellItemPage> {
             const SizedBox(height: 16),
 
             if (_isLoading) ...[
-              const Center(child: CircularProgressIndicator()),
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
               const SizedBox(height: 12),
               const Center(
                 child: Text(
-                  'AI กำลังวิเคราะห์ภาพสินค้า...',
+                  'กำลังดำเนินการ...',
                   style: TextStyle(
                     color: Colors.deepPurple,
                     fontWeight: FontWeight.bold,
@@ -194,7 +255,9 @@ class _SellItemPageState extends State<SellItemPage> {
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
+                  border: Border.all(
+                    color: Colors.red.shade200,
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,7 +271,9 @@ class _SellItemPageState extends State<SellItemPage> {
                     Expanded(
                       child: Text(
                         _errorMessage!,
-                        style: TextStyle(color: Colors.red.shade700),
+                        style: TextStyle(
+                          color: Colors.red.shade700,
+                        ),
                       ),
                     ),
                   ],
@@ -225,6 +290,7 @@ class _SellItemPageState extends State<SellItemPage> {
               ),
             ),
             const SizedBox(height: 12),
+
             TextField(
               controller: _categoryController,
               decoration: const InputDecoration(
@@ -233,6 +299,7 @@ class _SellItemPageState extends State<SellItemPage> {
               ),
             ),
             const SizedBox(height: 12),
+
             TextField(
               controller: _descriptionController,
               maxLines: 4,

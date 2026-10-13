@@ -1,14 +1,19 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'models/cart_model.dart';
-import 'database/app_database.dart';
-import 'repositories/item_repository_mock.dart';
-import 'repositories/favorites_repository_drift.dart';
-import 'repositories/listing_draft_repository_drift.dart';
-import 'screens/main_scaffold.dart';
 
-void main() {
+import 'database/app_database.dart';
+import 'firebase_options.dart';
+import 'models/cart_model.dart';
+import 'repositories/favorites_repository_drift.dart';
+import 'repositories/item_repository_api.dart'; // 👈 Import ItemRepositoryApi
+import 'repositories/item_repository_firestore.dart'; // 👈 Import ItemRepositoryFirestore
+import 'repositories/listing_draft_repository_drift.dart';
+import 'screens/auth_gate.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final db = AppDatabase();
 
@@ -29,12 +34,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Campus Marketplace',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MainScaffold(
-        itemRepository: ItemRepositoryMock(),
+      home: AuthGate(
+        itemRepositories: [
+          ItemRepositoryApi(), // สินค้าจาก API
+          ItemRepositoryFirestore(), // สินค้าจาก Firestore
+        ],
         favoritesRepository: FavoritesRepositoryDrift(db),
         draftRepository: ListingDraftRepositoryDrift(db),
       ),

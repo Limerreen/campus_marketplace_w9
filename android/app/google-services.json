@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "850118188661",
+    "project_id": "campus-marketplace-2026-nurin",
+    "storage_bucket": "campus-marketplace-2026-nurin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:850118188661:android:cfa6770911d7f2f7dae23c",
+        "android_client_info": {
+          "package_name": "com.example.campus_marketplace_w7"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "850118188661-o1a5l66fq7c18rh7c5cni10dk62d2cd5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.campus_marketplace_w7",
+            "certificate_hash": "e845eb95347b9b747cf94ba3a54501efaedc4a03"
+          }
+        },
+        {
+          "client_id": "850118188661-35ndi796h74p12sv2q1nc3a82jvq12ur.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8tZZoVkpL9F4pROPjP--Efw45V1kVfHw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "850118188661-35ndi796h74p12sv2q1nc3a82jvq12ur.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "850118188661-0eab4qk4e0poknmliknstmnfko8dkrfl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.campusMarketplaceW7"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

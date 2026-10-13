@@ -1,4 +1,4 @@
-name: campus_marketplace_w7
+name: campus_marketplace_w9
 description: "A new Flutter project."
 publish_to: 'none'
 
@@ -10,6 +10,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+# Firebase Dependencies
+  firebase_core: ^4.14.0
+  firebase_auth: ^6.6.0
+  cloud_firestore: ^6.9.0
+  firebase_storage: ^13.5.0
+  google_sign_in: ^7.2.0
+
   http: ^1.2.2
   provider: ^6.1.2
   image_picker: ^1.1.2

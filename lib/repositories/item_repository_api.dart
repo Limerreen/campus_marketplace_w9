@@ -37,7 +37,7 @@ class ItemRepositoryApi implements ItemRepository {
   // สินค้าสำรอง กรณี Fake Store API ใช้งานไม่ได้
   static const List<Item> _mockItems = [
     Item(
-      id: 101,
+      id: '101',
       title: 'เสื้อยืด Campus',
       price: 199.0,
       description: 'เสื้อยืดสำหรับนักศึกษา',
@@ -45,7 +45,7 @@ class ItemRepositoryApi implements ItemRepository {
       imageUrl: 'https://via.placeholder.com/150',
     ),
     Item(
-      id: 102,
+      id: '102',
       title: 'กระเป๋าสะพาย',
       price: 299.0,
       description: 'กระเป๋าสำหรับใช้งานทั่วไป',
@@ -53,7 +53,7 @@ class ItemRepositoryApi implements ItemRepository {
       imageUrl: 'https://via.placeholder.com/150',
     ),
     Item(
-      id: 103,
+      id: '103',
       title: 'หูฟังไร้สาย',
       price: 599.0,
       description: 'หูฟัง Bluetooth',

@@ -6,14 +6,16 @@ import '../repositories/item_repository.dart';
 import '../repositories/favorites_repository.dart';
 import 'checkout_page.dart';
 import '../services/gemini_service.dart';
+import '../services/auth_service.dart';
 
 class HomePage extends StatefulWidget {
-  final ItemRepository repository;
+  final List<ItemRepository>
+  repositories; // 👈 เปลี่ยนเป็น List<ItemRepository>
   final FavoritesRepository favoritesRepository;
 
   const HomePage({
     super.key,
-    required this.repository,
+    required this.repositories, // 👈 ใช้ชื่อ repositories
     required this.favoritesRepository,
   });
 
@@ -27,7 +29,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _itemsFuture = widget.repository.getItems();
+    _loadAllItems();
+  }
+
+  // ดึงข้อมูลจากทุก Repository ใน List พร้อมกันแล้วมารวมเป็น List เดียว
+  void _loadAllItems() {
+    _itemsFuture = Future.wait(
+      widget.repositories.map((repo) => repo.getItems()),
+    ).then((results) => results.expand((items) => items).toList());
   }
 
   @override
@@ -45,6 +54,13 @@ class _HomePageState extends State<HomePage> {
               context,
               MaterialPageRoute(builder: (_) => const CheckoutPage()),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'ออกจากระบบ',
+            onPressed: () async {
+              await AuthService().signOut();
+            },
           ),
         ],
       ),
@@ -79,7 +95,6 @@ class _HomePageState extends State<HomePage> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ปุ่มรูปหัวใจ (Favorites)
                     IconButton(
                       icon: const Icon(
                         Icons.favorite_border,
@@ -88,7 +103,7 @@ class _HomePageState extends State<HomePage> {
                       onPressed: () async {
                         try {
                           await widget.favoritesRepository.addFavorite(
-                            item.id,
+                            int.tryParse(item.id) ?? item.id.hashCode,
                             item.title,
                             item.price,
                             item.imageUrl,
@@ -115,7 +130,6 @@ class _HomePageState extends State<HomePage> {
                         }
                       },
                     ),
-                    // ปุ่มตะกร้าสินค้าเดิม
                     IconButton(
                       icon: const Icon(Icons.add_shopping_cart),
                       onPressed: () {
@@ -143,7 +157,6 @@ class _HomePageState extends State<HomePage> {
             final result = await GeminiService().generateText(
               'ช่วยแต่งประโยคทักทายลูกค้าร้านค้าออนไลน์แบบเป็นกันเอง',
             );
-            print('Gemini Response: $result');
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -153,7 +166,6 @@ class _HomePageState extends State<HomePage> {
               );
             }
           } catch (e) {
-            print('Gemini Error: $e');
             if (context.mounted) {
               ScaffoldMessenger.of(
                 context,
